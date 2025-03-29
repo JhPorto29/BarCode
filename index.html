@@ -66,16 +66,16 @@
             const barcodeContainer = document.getElementById("barcodeContainer");
             barcodeContainer.innerHTML = "";
             
-            let y = 20;
+            let x = 10, y = 20;
             serials.forEach((serial, index) => {
                 if (!serial.trim()) return;
                 let canvas = document.createElement("canvas");
-                JsBarcode(canvas, serial.trim(), { format: "CODE128", width: 2, height: 40 });
+                JsBarcode(canvas, serial.trim(), { format: "CODE128", width: 1.8, height: 50, fontSize: 14, textMargin: 5 });
                 barcodeContainer.appendChild(canvas);
                 let imgData = canvas.toDataURL("image/png");
-                doc.addImage(imgData, "PNG", 10, y, 100, 30);
-                doc.text(serial.trim(), 10, y + 35);
-                y += 50;
+                doc.addImage(imgData, "PNG", x, y, 90, 40);
+                x += 100; 
+                if ((index + 1) % 2 === 0) { x = 10; y += 60; }
                 if (y > 270) { doc.addPage(); y = 20; }
             });
             doc.save("codigos_barras.pdf");

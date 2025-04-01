@@ -94,6 +94,11 @@
             serials.forEach((serial, index) => {
                 if (!serial.trim()) return;
                 let canvas = document.createElement("canvas");
+                const scale = 3; // Increase the scale for higher resolution
+                canvas.width = 90 * scale;
+                canvas.height = 50 * scale;
+                const ctx = canvas.getContext("2d");
+                ctx.scale(scale, scale);
                 JsBarcode(canvas, serial.trim(), { format: "CODE128", width: barWidth, height: 50, fontSize: 14, textMargin: 5 });
                 barcodeContainer.appendChild(canvas);
                 let imgData = canvas.toDataURL("image/png");

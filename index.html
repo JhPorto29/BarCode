@@ -38,7 +38,7 @@
             font-weight: 500;
         }
 
-        input[type="range"], input[type="number"], select, textarea {
+        input[type="range"], input[type="number"], textarea, select {
             width: 100%;
             margin-bottom: 10px;
         }
@@ -82,18 +82,19 @@
         <label for="barcodesInput">Digite os valores (um por linha):</label>
         <textarea id="barcodesInput" placeholder="Ex: 123456789012\n987654321098"></textarea>
 
-        <label for="barcodeSize">Altura (px): <span id="sizeValue">100</span></label>
-        <input type="range" id="barcodeSize" min="50" max="200" value="100" oninput="updateExampleBarcode()">
+        <label for="barcodeSize">Altura do Código de Barras (px): <span id="sizeValue">100</span></label>
+        <input type="range" id="barcodeSize" min="30" max="150" value="100" oninput="updateExampleBarcode()">
 
-        <label for="barcodeWidth">Largura da Barra: <span id="widthValue">1.0</span></label>
-        <input type="range" id="barcodeWidth" min="0.5" max="5" step="0.1" value="1.0" oninput="updateExampleBarcode()">
+        <label for="barWidth">Largura da Barra (px): <span id="widthValue">1</span></label>
+        <input type="range" id="barWidth" min="0.5" max="4" step="0.1" value="1" oninput="updateExampleBarcode()">
 
-        <label for="format">Formato do Código:</label>
-        <select id="format" onchange="updateExampleBarcode()">
+        <label for="barcodeFormat">Formato do Código:</label>
+        <select id="barcodeFormat" onchange="updateExampleBarcode()">
             <option value="CODE128">CODE128</option>
             <option value="EAN13">EAN13</option>
             <option value="UPC">UPC</option>
             <option value="CODE39">CODE39</option>
+            <option value="ITF">ITF</option>
         </select>
 
         <label for="codesPerLine">Códigos por Linha:</label>
@@ -109,16 +110,14 @@
     <script>
         function updateExampleBarcode() {
             const size = document.getElementById('barcodeSize').value;
-            const width = document.getElementById('barcodeWidth').value;
-            const format = document.getElementById('format').value;
-
+            const width = document.getElementById('barWidth').value;
+            const format = document.getElementById('barcodeFormat').value;
             document.getElementById('sizeValue').innerText = size;
             document.getElementById('widthValue').innerText = width;
-
             JsBarcode("#barcode", "123456789012", {
+                format: format,
                 width: parseFloat(width),
                 height: parseInt(size),
-                format: format,
                 displayValue: true
             });
         }
@@ -129,12 +128,12 @@
 
             const codes = document.getElementById("barcodesInput").value.trim().split("\n").filter(c => c.trim() !== "");
             const codesPerLine = parseInt(document.getElementById('codesPerLine').value);
-            const height = parseInt(document.getElementById('barcodeSize').value);
-            const width = parseFloat(document.getElementById('barcodeWidth').value);
-            const format = document.getElementById('format').value;
+            const size = parseInt(document.getElementById('barcodeSize').value);
+            const barWidth = parseFloat(document.getElementById('barWidth').value);
+            const format = document.getElementById('barcodeFormat').value;
 
-            const barcodeHeight = height;
-            const barcodeWidth = width * 50;
+            const barcodeHeight = size;
+            const barcodeWidth = barWidth * 60; // Ajuste proporcional
             const marginX = 10;
             const marginY = 10;
             let x = marginX;
@@ -142,25 +141,25 @@
 
             codes.forEach((code, i) => {
                 const canvas = document.createElement('canvas');
-                canvas.width = barcodeWidth * 3;
-                canvas.height = barcodeHeight * 3;
+                canvas.width = barcodeWidth * 4;
+                canvas.height = barcodeHeight * 4;
                 const ctx = canvas.getContext('2d');
-                ctx.scale(3, 3);
+                ctx.scale(4, 4); // Aumentar resolução
 
                 JsBarcode(canvas, code.trim(), {
-                    width: width,
-                    height: height,
                     format: format,
+                    width: barWidth,
+                    height: barcodeHeight,
                     displayValue: true
                 });
 
                 const imgData = canvas.toDataURL("image/png");
-                pdf.addImage(imgData, "PNG", x, y, barcodeWidth, barcodeHeight);
+                pdf.addImage(imgData, "PNG", x, y, barcodeWidth, barcodeHeight / 1.5);
 
                 x += barcodeWidth + marginX;
                 if ((i + 1) % codesPerLine === 0) {
                     x = marginX;
-                    y += barcodeHeight + marginY;
+                    y += (barcodeHeight / 1.5) + marginY;
                     if (y > 270) {
                         pdf.addPage();
                         y = marginY;

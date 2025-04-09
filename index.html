@@ -6,85 +6,172 @@
     <title>Gerador de Códigos de Barras</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        input[type="range"], input[type="number"], select, textarea {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            height: 80px;
+            padding: 8px;
+            resize: none;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        #barcodeContainer {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <div>
-        <label for="barcodeSize">Tamanho do Código de Barras (px):</label>
-        <input type="range" id="barcodeSize" min="50" max="200" value="100" oninput="updateBarcodeSize(this.value)">
-        <span id="sizeValue">100</span>
-    </div>
+    <div class="container">
+        <h2>Gerador de Códigos de Barras</h2>
 
-    <div>
+        <label for="barcodesInput">Digite os valores (um por linha):</label>
+        <textarea id="barcodesInput" placeholder="Ex: 123456789012\n987654321098"></textarea>
+
+        <label for="barcodeSize">Altura (px): <span id="sizeValue">100</span></label>
+        <input type="range" id="barcodeSize" min="50" max="200" value="100" oninput="updateExampleBarcode()">
+
+        <label for="barcodeWidth">Largura da Barra: <span id="widthValue">1.0</span></label>
+        <input type="range" id="barcodeWidth" min="0.5" max="5" step="0.1" value="1.0" oninput="updateExampleBarcode()">
+
+        <label for="format">Formato do Código:</label>
+        <select id="format" onchange="updateExampleBarcode()">
+            <option value="CODE128">CODE128</option>
+            <option value="EAN13">EAN13</option>
+            <option value="UPC">UPC</option>
+            <option value="CODE39">CODE39</option>
+        </select>
+
         <label for="codesPerLine">Códigos por Linha:</label>
         <input type="number" id="codesPerLine" min="1" max="10" value="3">
-    </div>
 
-    <div id="barcodeContainer">
-        <svg id="barcode"></svg>
-    </div>
+        <div id="barcodeContainer">
+            <svg id="barcode"></svg>
+        </div>
 
-    <button onclick="generatePDF()">Gerar PDF</button>
+        <button onclick="generatePDF()">Gerar PDF</button>
+    </div>
 
     <script>
-        // Atualizar exibição do tamanho
-        function updateBarcodeSize(size) {
+        function updateExampleBarcode() {
+            const size = document.getElementById('barcodeSize').value;
+            const width = document.getElementById('barcodeWidth').value;
+            const format = document.getElementById('format').value;
+
             document.getElementById('sizeValue').innerText = size;
+            document.getElementById('widthValue').innerText = width;
+
             JsBarcode("#barcode", "123456789012", {
-                width: size / 100,
-                height: size,
+                width: parseFloat(width),
+                height: parseInt(size),
+                format: format,
                 displayValue: true
             });
         }
 
-        // Geração do PDF
         function generatePDF() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF();
 
+            const codes = document.getElementById("barcodesInput").value.trim().split("\n").filter(c => c.trim() !== "");
             const codesPerLine = parseInt(document.getElementById('codesPerLine').value);
-            const size = parseInt(document.getElementById('barcodeSize').value);
+            const height = parseInt(document.getElementById('barcodeSize').value);
+            const width = parseFloat(document.getElementById('barcodeWidth').value);
+            const format = document.getElementById('format').value;
 
-            const barcodeHeight = size;
-            const barcodeWidth = size;
-
+            const barcodeHeight = height;
+            const barcodeWidth = width * 50;
             const marginX = 10;
             const marginY = 10;
             let x = marginX;
             let y = marginY;
 
-            const totalBarcodes = 12; // Ajuste conforme necessário
-
-            for (let i = 0; i < totalBarcodes; i++) {
+            codes.forEach((code, i) => {
                 const canvas = document.createElement('canvas');
-                canvas.width = barcodeWidth * 3; // aumentar resolução
+                canvas.width = barcodeWidth * 3;
                 canvas.height = barcodeHeight * 3;
-
                 const ctx = canvas.getContext('2d');
-                ctx.scale(3, 3); // alta definição
+                ctx.scale(3, 3);
 
-                JsBarcode(canvas, "123456789012", {
-                    width: barcodeWidth / 100,
-                    height: barcodeHeight,
+                JsBarcode(canvas, code.trim(), {
+                    width: width,
+                    height: height,
+                    format: format,
                     displayValue: true
                 });
 
                 const imgData = canvas.toDataURL("image/png");
-
-                pdf.addImage(imgData, "PNG", x, y, barcodeWidth, barcodeHeight / 2);
+                pdf.addImage(imgData, "PNG", x, y, barcodeWidth, barcodeHeight);
 
                 x += barcodeWidth + marginX;
-
                 if ((i + 1) % codesPerLine === 0) {
                     x = marginX;
-                    y += (barcodeHeight / 2) + marginY;
+                    y += barcodeHeight + marginY;
+                    if (y > 270) {
+                        pdf.addPage();
+                        y = marginY;
+                    }
                 }
-            }
+            });
 
             pdf.save("barcodes.pdf");
         }
 
-        // Inicializa com tamanho padrão
-        updateBarcodeSize(100);
+        updateExampleBarcode();
     </script>
 </body>
 </html>

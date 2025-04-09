@@ -1,29 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barcode Generator</title>
+    <title>Gerador de Códigos de Barras</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div>
-        <label for="barcodeSize">Tamanho do Código de Barras:</label>
+        <label for="barcodeSize">Tamanho do Código de Barras (px):</label>
         <input type="range" id="barcodeSize" min="50" max="200" value="100" oninput="updateBarcodeSize(this.value)">
         <span id="sizeValue">100</span>
     </div>
+
     <div>
         <label for="codesPerLine">Códigos por Linha:</label>
         <input type="number" id="codesPerLine" min="1" max="10" value="3">
     </div>
+
     <div id="barcodeContainer">
         <svg id="barcode"></svg>
     </div>
+
     <button onclick="generatePDF()">Gerar PDF</button>
 
     <script>
-        // Atualizar tamanho do código de barras
+        // Atualizar exibição do tamanho
         function updateBarcodeSize(size) {
             document.getElementById('sizeValue').innerText = size;
             JsBarcode("#barcode", "123456789012", {
@@ -33,35 +36,54 @@
             });
         }
 
-        // Gerar PDF com configurações
+        // Geração do PDF
         function generatePDF() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF();
+
             const codesPerLine = parseInt(document.getElementById('codesPerLine').value);
             const size = parseInt(document.getElementById('barcodeSize').value);
 
-            let x = 10, y = 10;
-            for (let i = 0; i < 10; i++) { // Exemplo com 10 códigos de barras
+            const barcodeHeight = size;
+            const barcodeWidth = size;
+
+            const marginX = 10;
+            const marginY = 10;
+            let x = marginX;
+            let y = marginY;
+
+            const totalBarcodes = 12; // Ajuste conforme necessário
+
+            for (let i = 0; i < totalBarcodes; i++) {
                 const canvas = document.createElement('canvas');
+                canvas.width = barcodeWidth * 3; // aumentar resolução
+                canvas.height = barcodeHeight * 3;
+
+                const ctx = canvas.getContext('2d');
+                ctx.scale(3, 3); // alta definição
+
                 JsBarcode(canvas, "123456789012", {
-                    width: size / 100,
-                    height: size,
+                    width: barcodeWidth / 100,
+                    height: barcodeHeight,
                     displayValue: true
                 });
 
-                pdf.addImage(canvas.toDataURL("image/png"), "PNG", x, y, size, size / 2);
+                const imgData = canvas.toDataURL("image/png");
 
-                x += size + 10;
+                pdf.addImage(imgData, "PNG", x, y, barcodeWidth, barcodeHeight / 2);
+
+                x += barcodeWidth + marginX;
+
                 if ((i + 1) % codesPerLine === 0) {
-                    x = 10;
-                    y += (size / 2) + 10;
+                    x = marginX;
+                    y += (barcodeHeight / 2) + marginY;
                 }
             }
 
             pdf.save("barcodes.pdf");
         }
 
-        // Inicializar código de barras
+        // Inicializa com tamanho padrão
         updateBarcodeSize(100);
     </script>
 </body>

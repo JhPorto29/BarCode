@@ -17,77 +17,79 @@
             background: linear-gradient(135deg, #e3f2fd, #ffffff);
             margin: 0;
             padding: 0;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
             color: #333;
         }
 
         .container {
             background-color: #fff;
-            padding: 40px 30px;
+            padding: 20px;
             border-radius: 16px;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
-            width: 420px;
-            max-width: 90%;
-            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 20px;
+            align-items: start;
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         h2 {
+            margin-top: 0;
+            font-size: 22px;
             text-align: center;
-            margin-bottom: 25px;
-            font-weight: 600;
-            font-size: 24px;
+            grid-column: span 2;
         }
 
         label {
             font-weight: 500;
-            margin-top: 20px;
-            display: block;
-            margin-bottom: 8px;
+            font-size: 14px;
         }
 
         textarea, input[type="range"], input[type="number"], select {
             width: 100%;
-            padding: 10px;
-            font-size: 14px;
+            padding: 8px;
+            font-size: 13px;
             border: 1px solid #ccc;
             border-radius: 8px;
-            margin-bottom: 10px;
-            transition: border-color 0.2s;
         }
 
         textarea {
             resize: none;
-            height: 80px;
+            height: 60px;
         }
 
         input[type="range"] {
-            padding: 0;
             height: 30px;
         }
 
         #barcodeContainer {
-            margin-top: 25px;
-            padding: 15px;
             background-color: #f5f7fa;
             border: 2px dashed #ccc;
             border-radius: 10px;
+            padding: 8px;
             text-align: center;
         }
 
         button {
-            width: 100%;
             background-color: #007bff;
             color: white;
-            padding: 12px;
-            font-size: 16px;
+            padding: 10px;
+            font-size: 14px;
             border: none;
             border-radius: 10px;
             cursor: pointer;
-            margin-top: 20px;
-            transition: background-color 0.3s;
+            margin-top: 10px;
         }
 
         button:hover {
@@ -95,7 +97,6 @@
         }
 
         span {
-            font-weight: 500;
             color: #007bff;
         }
 
@@ -106,38 +107,74 @@
             background-position: right 10px center;
             background-size: 16px 16px;
         }
+
+        .controls-inline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .controls-inline label {
+            flex: 1;
+        }
+
+        .controls-inline span {
+            margin-left: 8px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                height: auto;
+                overflow-y: auto;
+                max-height: 100vh;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Gerador de Códigos de Barras</h2>
 
-        <label for="barcodesInput">Valores (um por linha):</label>
-        <textarea id="barcodesInput" placeholder="Ex: 123456789012&#10;987654321098"></textarea>
+        <div class="form-section">
+            <label for="barcodesInput">Códigos (um por linha):</label>
+            <textarea id="barcodesInput" placeholder="Ex: 123456789012&#10;987654321098"></textarea>
 
-        <label for="barcodeSize">Altura (px): <span id="sizeValue">100</span></label>
-        <input type="range" id="barcodeSize" min="30" max="150" value="100" oninput="updateExampleBarcode()">
+            <div class="controls-inline">
+                <label for="barcodeSize">Altura:</label>
+                <input type="range" id="barcodeSize" min="30" max="150" value="100" oninput="updateExampleBarcode()">
+                <span id="sizeValue">100</span>
+            </div>
 
-        <label for="barWidth">Largura da Barra (px): <span id="widthValue">1</span></label>
-        <input type="range" id="barWidth" min="0.5" max="4" step="0.1" value="1" oninput="updateExampleBarcode()">
+            <div class="controls-inline">
+                <label for="barWidth">Largura da Barra:</label>
+                <input type="range" id="barWidth" min="0.5" max="4" step="0.1" value="1" oninput="updateExampleBarcode()">
+                <span id="widthValue">1</span>
+            </div>
 
-        <label for="barcodeFormat">Formato:</label>
-        <select id="barcodeFormat" onchange="updateExampleBarcode()">
-            <option value="CODE128">CODE128</option>
-            <option value="EAN13">EAN13</option>
-            <option value="UPC">UPC</option>
-            <option value="CODE39">CODE39</option>
-            <option value="ITF">ITF</option>
-        </select>
+            <label for="barcodeFormat">Formato:</label>
+            <select id="barcodeFormat" onchange="updateExampleBarcode()">
+                <option value="CODE128">CODE128</option>
+                <option value="EAN13">EAN13</option>
+                <option value="UPC">UPC</option>
+                <option value="CODE39">CODE39</option>
+                <option value="ITF">ITF</option>
+            </select>
 
-        <label for="codesPerLine">Códigos por Linha:</label>
-        <input type="number" id="codesPerLine" min="1" max="10" value="3">
+            <label for="codesPerLine">Códigos por linha:</label>
+            <input type="number" id="codesPerLine" min="1" max="10" value="3">
+
+            <button onclick="generatePDF()">Gerar PDF</button>
+        </div>
 
         <div id="barcodeContainer">
             <svg id="barcode"></svg>
         </div>
-
-        <button onclick="generatePDF()">Gerar PDF</button>
     </div>
 
     <script>
